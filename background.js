@@ -1,6 +1,27 @@
-import { verifiedUrlList, scamUrlList } from "./url_list.js";
-
 function onTabActivate(current_tab_url) {
+  const verifiedUrlList = [];
+  const scamUrlList = [];
+
+  fetch(
+    "https://raw.githubusercontent.com/The-Great-Ape/solana-safety-101/main/pages/api/data.json"
+  )
+    .then((response) => response.json())
+    .then((json) => {
+      json.forEach((urlGroup) =>
+        urlGroup.forEach((url) => {
+          if (url.status === "Real") {
+            verifiedUrlList.push(url.domain);
+          } else {
+            scamUrlList.push(url.domain);
+          }
+        })
+      );
+    }).then(() => {
+      verifyUrl(current_tab_url, verifiedUrlList, scamUrlList)
+    });
+}
+
+function verifyUrl(current_tab_url, verifiedUrlList, scamUrlList) {
   const hostName = getHostNameFromUrl(current_tab_url);
   if (verifiedUrlList.indexOf(hostName) > -1) {
     setBadge("green", "PASS");
