@@ -15,6 +15,12 @@
     "type": "module"
   },
   "permissions": [
-    "tabs"
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*/*",
+    "<all_urls>"
   ]
 }

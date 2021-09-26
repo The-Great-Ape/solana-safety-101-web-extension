@@ -1,4 +1,6 @@
-function onTabActivate(current_tab_url) {
+let fireAlretTabId = 0;
+
+function onTabActivate(current_tab_url, tabId) {
   const verifiedUrlList = [];
   const scamUrlList = [];
 
@@ -17,16 +19,17 @@ function onTabActivate(current_tab_url) {
         })
       );
     }).then(() => {
-      verifyUrl(current_tab_url, verifiedUrlList, scamUrlList)
+      verifyUrl(current_tab_url, tabId, verifiedUrlList, scamUrlList)
     });
 }
 
-function verifyUrl(current_tab_url, verifiedUrlList, scamUrlList) {
+function verifyUrl(current_tab_url, tabId, verifiedUrlList, scamUrlList) {
   const hostName = getHostNameFromUrl(current_tab_url);
   if (verifiedUrlList.indexOf(hostName) > -1) {
     setBadge("green", "PASS");
   } else if (scamUrlList.indexOf(hostName) > -1) {
     setBadge("red", "WARN");
+    setAlert(tabId);
   } else {
     setBadge("black", "UNKN");
   }
@@ -46,16 +49,26 @@ function setBadge(color, text) {
   });
 }
 
+function setAlert(tabId) {
+  if (fireAlretTabId != tabId) {
+    chrome.scripting.executeScript({
+      target: { tabId: tabId, allFrames: true },
+      func: () => alert("Warning: This website might not be an official website"),
+    });
+    fireAlretTabId = tabId;
+  }
+}
+
 chrome.tabs.onActivated.addListener((tab) => {
   chrome.tabs.get(tab.tabId, (current_tab_info) => {
     if (current_tab_info.url) {
-      onTabActivate(current_tab_info.url);
+      onTabActivate(current_tab_info.url, tab.tabId);
     }
   });
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (tab.url) {
-    onTabActivate(tab.url);
+    onTabActivate(tab.url, tabId);
   }
 });
